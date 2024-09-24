@@ -1,7 +1,7 @@
 import Joi from "joi";
 
 const taskJoi = Joi.object({
-  name: Joi.string().required(),
+  name: Joi.string(),
 
   date: Joi.date().default(Date.now),
 

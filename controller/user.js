@@ -1,8 +1,11 @@
 import signUpJoi from "../Joi/userJoi.js";
 import User from "../model/signup.js";
 import jwt from "jsonwebtoken";
+import NodeCache from "node-cache";
 import nodemailer from "nodemailer";
 import crypto from "crypto";
+
+const nodeCache = new NodeCache();
 
 export const handleAddUser = async (req, res) => {
   const { name, email, password } = req.body;
@@ -37,7 +40,15 @@ export const handleAddUser = async (req, res) => {
 };
 
 export const handleGetUsers = async (req, res) => {
-  const allUsers = await User.find({});
+  let allUsers;
+
+  if (nodeCache.has("allUsers")) {
+    allUsers = JSON.parse(nodeCache.get("allUsers"));
+  } else {
+    allUsers = await User.find({});
+    nodeCache.set("allUsers", JSON.stringify(allUsers));
+  }
+
   if (!allUsers)
     return res.status(404).json({ error: "Internal server error" });
   return res.json(allUsers);
@@ -133,7 +144,6 @@ export const handlePasswordReset = async (req, res) => {
     // console.log("Hashed token from URL:", hashedToken);
     // console.log("Stored token in DB:", user.resetPasswordToken);
     // console.log("Token expiration time:", user.resetPasswordExpire);
-
 
     await user.save();
 
